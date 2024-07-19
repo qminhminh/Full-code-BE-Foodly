@@ -3,6 +3,12 @@ const Category = require("../models/Category")
 module.exports = {
 
      createCategory: async (req, res) => {
+        const { title, value, imageUrl } = req.body;
+
+        if (!title || !value || !imageUrl) {
+            return res.status(400).json({ status: false, message: 'title, value, and imageUrl are required.' });
+        }
+        
         const newCategory =  new Category(req.body);
         try {
            await newCategory.save();

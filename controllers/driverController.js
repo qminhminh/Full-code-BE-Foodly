@@ -4,19 +4,27 @@ const User = require('../models/User');
 module.exports = {
     registerDriver: async (req, res) => {
         const userId = req.user.id;
-        const newDriver = new Driver({
-            driver: userId, 
-            vehicleType: req.body.vehicleType,
-            phone: req.body.phone,
-            vehicleNumber: req.body.vehicleNumber,
-            currentLocation: {
-                latitude: req.body.latitude,
-                longitude: req.body.longitude
-            },
-        });
+        const phone = req.body.phone;
+
+        const existingPhone = await User.findOne({ phone: phone});
+
+        if (existingPhone){
+            return res.status(404).json({ status: false, message: 'Phone number already exists' });
+        }
 
         
-    
+            const newDriver = new Driver({
+                driver: userId, 
+                vehicleType: req.body.vehicleType,
+                phone: req.body.phone,
+                vehicleNumber: req.body.vehicleNumber,
+                currentLocation: {
+                    latitude: req.body.latitude,
+                    longitude: req.body.longitude
+                },
+            });
+        
+       
         try {
             await newDriver.save();
             await User.findByIdAndUpdate(
