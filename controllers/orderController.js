@@ -504,7 +504,7 @@ module.exports = {
                     } else if (status === 'Delivered') {
 
                         await Restaurant.findByIdAndUpdate(updatedOrder.restaurantId._id, {
-                            $inc: { earnings: updatedOrder.orderTotal }
+                            $inc: { earnings: updatedOrder.orderTotal }//để tăng giá trị của một trường
                         }, { new: true });
 
                         if (user.fcm || user.fcm !== null || user.fcm !== '') {

@@ -21,7 +21,7 @@ const orderSchema = new mongoose.Schema({
     },
     restaurantAddress: {type: String, required: true},
     paymentMethod: { type: String },
-    paymentStatus: { type: String, default: "Pending", enum: ["Pending", "Completed", "Failed"] },
+    paymentStatus: { type: String, default: "Completed", enum: ["Pending", "Completed", "Failed"] },
     orderStatus: { type: String, default: "Placed", enum: ["Placed", "Preparing", "Manual" ,"Out_for_Delivery", "Ready","Cancelled", "Delivered"] },
     orderDate: { type: Date, default: Date.now },
     restaurantId: { type: mongoose.Schema.Types.ObjectId, ref: "Restaurant"},
@@ -36,3 +36,12 @@ const orderSchema = new mongoose.Schema({
 }, {timestamps: true});
 
 module.exports = mongoose.model('Order', orderSchema);
+
+//Đặt Hàng (Placed):
+//Xác Nhận Thanh Toán:
+//Chuẩn Bị Đơn Hàng (Preparing):
+//Chuẩn Bị Thủ Công (Manual):
+//Đơn Hàng Sẵn Sàng (Ready):
+//Đang Giao Hàng (Out_for_Delivery):
+//Giao Hàng Thành Công (Delivered):
+//Hủy Đơn Hàng (Cancelled):

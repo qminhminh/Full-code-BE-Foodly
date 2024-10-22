@@ -275,5 +275,59 @@ module.exports = {
             res.status(500).json({ error: error.message, status: false });
         }
     },
-
+    
+    updateFoodsRestaurant : async (req, res) => { 
+        const { title, foodTags, category, foodType, code, isAvailable, restaurant, description, time, price, additives, imageUrl } = req.body;
+  
+        // Kiểm tra dữ liệu đầu vào
+        if (!title || !foodTags || !category || !foodType || !code || !description || !price || !additives || !time || !imageUrl || !restaurant || !isAvailable) {
+            return res.status(400).json({ status: false, message: 'Missing required fields' });
+        }
+    
+        try {
+            // Tìm và cập nhật món ăn theo ID
+            const updatedFood = await Food.findByIdAndUpdate(
+                req.params.id,
+                {
+                    title,
+                    foodTags,
+                    category,
+                    foodType,
+                    code,
+                    isAvailable,
+                    restaurant,
+                    description,
+                    time,
+                    price,
+                    additives,
+                    imageUrl
+                },
+                { new: true } // Trả về món ăn đã được cập nhật
+            );
+    
+            if (!updatedFood) {
+                return res.status(404).json({ status: false, message: 'Food item not found' });
+            }
+    
+            res.status(200).json({ status: true, message: 'Food item successfully updated', data: updatedFood });
+        } catch (error) {
+            res.status(500).json({ status: false, message: error.message });
+        }
+    },
+    deleteFoodByIdRestaurant: async(req, res)=>{
+        try {
+            // Tìm và cập nhật món ăn theo ID
+            const deleteFood = await Food.findByIdAndDelete(
+                req.params.id,  
+            );
+    
+            if (!deleteFood) {
+                return res.status(404).json({ status: false, message: 'Food item not found' });
+            }
+    
+            res.status(200).json({ status: true, message: 'Food item successfully deleted', data: deleteFood });
+        } catch (error) {
+            res.status(500).json({ status: false, message: error.message });
+        }
+    },
 }

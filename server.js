@@ -4,6 +4,7 @@ const app = express();
 const morgan = require('morgan');
 const dotenv = require('dotenv');
 const compression = require('compression');
+const cors = require('cors');
 const { fireBaseConnection } = require('./utils/fbConnect');
 const authRoute = require("./routes/auth");
 const userRoute = require("./routes/user");

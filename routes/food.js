@@ -8,6 +8,10 @@ router.get('/restaurant-foods/:id', foodController.getFoodList)
 
 router.post("/", verifyVendor , foodController.addFood);
 
+router.put("/update/:id", verifyVendor , foodController.updateFoodsRestaurant);
+
+router.delete("/delete/:id", verifyVendor , foodController.deleteFoodByIdRestaurant);
+
 router.post("/tags/:id", foodController.addFoodTag);
 
 router.post("/type/:id", foodController.addFoodType);
