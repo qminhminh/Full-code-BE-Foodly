@@ -18,7 +18,7 @@ const messagingRoute = require("./routes/messaging");
 const orderRoute = require("./routes/order");
 const ratingRoute = require("./routes/rating");
 const uploadRoute =require("./routes/uploads")
-
+const voucherRoute =require("./routes/voucher");
 
 
 
@@ -47,6 +47,7 @@ app.use(morgan('combined'));
 app.use("/", authRoute);
 app.use("/api/users", userRoute);
 app.use("/api/restaurant", restRoute);
+app.use("/api/vouchers", voucherRoute);
 app.use("/api/category", catRoute);
 app.use("/api/foods", foodRoute);
 app.use("/api/cart", cartRoute);
