@@ -5,7 +5,7 @@ module.exports = {
         const { title, description, discount, addVoucherSwitch, restaurant } = req.body;
      
         // Simple validation
-        if (!title || !description || !discount || !addVoucherSwitch || !restaurant) {
+        if (!title || !description || !discount || !restaurant) {
             return res.status(400).json({ status: false, message: 'Missing required fields' });
         }
         const newVoucher = new Voucher({
@@ -41,7 +41,7 @@ module.exports = {
         const { title, description, discount, addVoucherSwitch, restaurant } = req.body;
       
         
-        if(!title || !description || !discount || !addVoucherSwitch || !restaurant){
+        if(!title || !description || !discount || !restaurant){
             return res.status(400).json({status: false, message: 'Missing required'});
         }
 

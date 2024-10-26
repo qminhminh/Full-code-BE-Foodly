@@ -8,9 +8,12 @@ router.post("/", verifyTokenAndAuthorization, cartController.addProductToCart);
 
 router.post("/decrement",verifyTokenAndAuthorization, cartController.decrementProductQuantity);
 
+router.post("/increment",verifyTokenAndAuthorization, cartController.incrementProductQuantity);
+
+router.put("/update-count-to-cart",verifyTokenAndAuthorization, cartController.updateProductQuantity);
+
 
 router.delete("/delete/:id",verifyTokenAndAuthorization, cartController.removeProductFromCart);
-
 
 router.get("/",verifyTokenAndAuthorization, cartController.fetchUserCart);
 

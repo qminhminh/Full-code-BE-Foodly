@@ -56,14 +56,14 @@ module.exports = {
             const userCart = await Cart.find({ userId: id })
             .populate({
                 path: 'productId',
-                select: "imageUrl title restaurant rating ratingCount",
+                select: "imageUrl title restaurant rating ratingCount price",
                 populate: {
                     path: 'restaurant',
-                    select: "time coords" // Add the fields you want to select from the restaurant
+                    select: "time coords title" // Add the fields you want to select from the restaurant
                 }
             })
             const count = await Cart.countDocuments({userId: id });
-
+             console.log(userCart);
             res.status(200).json(userCart);
         } catch (error) {
             res.status(500).json({ status: false, message: error.message });
@@ -123,6 +123,56 @@ module.exports = {
             res.status(500).json(error);
         }
     },
+    incrementProductQuantity: async (req, res) => {
+        const userId = req.user.id;
+        const productId = req.body.productId;
+    
+        try {
+            const cartItem = await Cart.findOne({ userId, productId });
+            
+            if (cartItem) {
+                // Calculate the price of a single product
+                const productPrice = cartItem.totalPrice / cartItem.quantity;
+    
+                // If quantity is more than 1, decrement and adjust price   
+                    cartItem.quantity += 1;
+                    cartItem.totalPrice += productPrice; 
+                    await cartItem.save();
+                    res.status(200).json({ status: true, message: 'Product quantity decreased successfully' });
+                
+            } else {
+                res.status(404).json({ status: false, message: 'Product not found in cart' });
+            }
+        } catch (error) {
+            res.status(500).json(error);
+        }
+    },
+    updateProductQuantity: async (req, res) => {
+       
+        const {cartId,userId, productId, quantity, totalPrice } = req.body;
+    
+        // Kiểm tra xem quantity và totalPrice có hợp lệ không
+        if (quantity <= 0 || totalPrice < 0) {
+            return res.status(400).json({ status: false, message: 'Invalid quantity or total price' });
+        }
+    
+        try {
+            const cartItem = await Cart.findById(cartId);
 
-
+            if (cartItem) {
+                // Cập nhật số lượng và tổng giá
+                cartItem.totalPrice = totalPrice;
+                cartItem.quantity = quantity;
+                await cartItem.save();
+    
+                res.status(200).json({ status: true, message: 'Product updated successfully in cart' });
+            } else {
+                res.status(404).json({ status: false, message: 'Product not found in cart' });
+            }
+        } catch (error) {
+            console.error("Error updating product quantity:", error); // Ghi lại lỗi
+            res.status(500).json({ status: false, message: 'Internal server error' });
+        }
+    },
+    
 };
