@@ -330,4 +330,16 @@ module.exports = {
             res.status(500).json({ status: false, message: error.message });
         }
     },
+    getFoodIdUseCart: async (req, res) => {
+      try {
+        const foodId = req.params.id;
+        const food = await Food.findById(foodId);
+        if (!food) {
+          return res.status(404).json({ status: false, message: 'Food not found' });
+        }
+        res.status(200).json({ status: true, message: 'Food found', data: food });
+      } catch (error) {
+        res.status(500).json({ status: false, message: error.message });
+      }
+    },
 }
