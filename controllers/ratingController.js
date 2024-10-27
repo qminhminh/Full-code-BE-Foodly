@@ -8,7 +8,8 @@ module.exports = {
             userId: req.user.id,
             ratingType: req.body.ratingType,
             product: req.body.product,
-            rating: req.body.rating
+            rating: req.body.rating,
+            comment: req.body.comment
         });
     
         try {
@@ -72,5 +73,15 @@ module.exports = {
         } catch (error) {
             return res.status(500).json({ status: false, message: error.message });
         }
+    },
+    getAllReviews: async (req, res) => {
+        const id = req.params.id;
+        try {
+            const reviews = await Rating.find({ product: id });
+            res.status(200).json({ status: true, reviews });
+        } catch (error) {
+            res.status(500).json({ status: false, message: error.message });
+        }
     }
+    
 }

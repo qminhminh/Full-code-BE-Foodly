@@ -6,4 +6,7 @@ const {verifyTokenAndAuthorization}= require("../middlewares/verifyToken")
 router.post("/",verifyTokenAndAuthorization, ratingController.addRating);
 router.get("/",verifyTokenAndAuthorization, ratingController.checkIfUserRatedRestaurant);
 
+router.get("/get-all-review/:id", ratingController.getAllReviews);
+
+
 module.exports = router;
