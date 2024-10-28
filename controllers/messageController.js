@@ -1,0 +1,22 @@
+const Message = require('../models/Message');
+const mongoose = require('mongoose');
+
+module.exports = {
+   getAllMessages : async (req, res) => {
+    const { restaurantId, customerId } = req.params;
+  
+    // Kiểm tra tính hợp lệ của restaurantId và customerId
+    if (!mongoose.Types.ObjectId.isValid(restaurantId) || !mongoose.Types.ObjectId.isValid(customerId)) {
+      return res.status(400).json({ error: 'Invalid restaurantId or customerId' });
+    }
+  
+    try {
+      const messages = await Message.find({ restaurantId, customerId }).sort('createdAt'); // Đảm bảo sort theo trường hợp đúng
+      res.status(200).json(messages);
+    } catch (err) {
+      console.error('Error fetching messages:', err);
+      res.status(500).json({ error: err.message });
+    }
+  },
+  
+};
