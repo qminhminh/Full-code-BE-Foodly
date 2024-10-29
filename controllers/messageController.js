@@ -18,5 +18,26 @@ module.exports = {
       res.status(500).json({ error: err.message });
     }
   },
+  getAllGetUsersMessages : async (req, res) => {
+    const { restaurantId } = req.params;
+  
+    // Kiểm tra tính hợp lệ của restaurantId và customerId
+    if (!mongoose.Types.ObjectId.isValid(restaurantId)) {
+      return res.status(400).json({ error: 'Invalid restaurantId or customerId' });
+    }
+  
+    try {
+      const messages = await Message.find({restaurantId})
+      .select('-message -createdAt -sender')
+      .populate({
+        path: 'customerId',
+        select: "username email phone profile userType",
+    });
+      res.status(200).json(messages);
+    } catch (err) {
+      console.error('Error fetching messages:', err);
+      res.status(500).json({ error: err.message });
+    }
+  },
   
 };
