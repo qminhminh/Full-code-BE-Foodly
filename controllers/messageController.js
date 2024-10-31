@@ -38,16 +38,16 @@ module.exports = {
     }
   },
 
-  getAllMessagesCustomer : async (req, res) => {
-    const { restaurantId, customerId } = req.params;
+  getAllMessagesDriverandRes : async (req, res) => {
+    const { restaurantId, driverId } = req.params;
      
     // Kiểm tra tính hợp lệ của restaurantId và customerId
-    if (!mongoose.Types.ObjectId.isValid(restaurantId) || !mongoose.Types.ObjectId.isValid(customerId)) {
+    if (!mongoose.Types.ObjectId.isValid(restaurantId) || !mongoose.Types.ObjectId.isValid(driverId)) {
       return res.status(400).json({ error: 'Invalid restaurantId or customerId' });
     }
   
     try {
-      const messages = await Message.find({ restaurantId, customerId }).sort('createdAt'); // Đảm bảo sort theo trường hợp đúng
+      const messages = await Message.find({ restaurantId, driverId }).sort('createdAt'); // Đảm bảo sort theo trường hợp đúng
       console.log(messages);
       res.status(200).json(messages);
     } catch (err) {
