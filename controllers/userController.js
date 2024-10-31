@@ -149,5 +149,16 @@ module.exports = {
         } catch (error) {
             res.status(500).json({ status: false, message: error.message });
         }
-     }
+     },
+     getAllUsersMessage: async (req, res) => {
+      
+        try {
+            const drivers = await User.find({userType: "Client" })
+            .select("-fcm -otp -password -createdAt -updatedAt -__v");
+            console.log(drivers);
+            res.status(200).json(drivers);
+        } catch (error) {
+            res.status(500).json(error);
+        }
+    }
 }

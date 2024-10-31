@@ -22,7 +22,7 @@ router.get("/",verifyTokenAndAuthorization, userController.getUser);
 router.put("/updateToken/:token",verifyTokenAndAuthorization, userController.updateFcm);
 
 // Add Skills
-
+router.get("/get-all-users", userController.getAllUsersMessage);
 
 
 module.exports = router

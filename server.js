@@ -81,7 +81,7 @@ const io = new Server(ioServer, {
 io.on('connection', (socket) => {
     console.log('User connected:', socket.id);
 
-    socket.on('send_message_res', async (data) => {
+    socket.on('send_message_res_client', async (data) => {
       const { restaurantId, customerId, message, sender } = data;
     
       // Làm sạch giá trị của customerId
@@ -92,13 +92,13 @@ io.on('connection', (socket) => {
       try {
         await newMessage.save();
         const room = `${restaurantId}_${cleanedCustomerId}`;
-        io.to(room).emit('receive_message', newMessage);
+        io.to(room).emit('receive_message_res_client', newMessage);
       } catch (err) {
         console.error('Error saving message:', err);
       }
     });
 
-    socket.on('send_message_driver', async (data) => {
+    socket.on('send_message_driver_client', async (data) => {
       const {driverId, customerId, message, sender } = data;
     
       // Làm sạch giá trị của customerId
@@ -109,13 +109,29 @@ io.on('connection', (socket) => {
       try {
         await newMessage.save();
         const room = `${driverId}_${cleanedCustomerId}`;
-        io.to(room).emit('receive_message', newMessage);
+        io.to(room).emit('receive_message_driver_client', newMessage);
+      } catch (err) {
+        console.error('Error saving message:', err);
+      }
+    });
+    socket.on('send_message_driver_res', async (data) => {
+      const {driverId, restaurantId, message, sender } = data;
+    
+      // Làm sạch giá trị của customerId
+      const cleanedCustomerId = restaurantId.replace(/"/g, '').trim(); // Loại bỏ dấu nháy kép và khoảng trắng
+    
+      const newMessage = new Message({driverId, restaurantId: cleanedCustomerId, message, sender , isRead: 'unread'});
+      
+      try {
+        await newMessage.save();
+        const room = `${restaurantId}_${driverId}`;
+        io.to(room).emit('receive_message_driver_res', newMessage);
       } catch (err) {
         console.error('Error saving message:', err);
       }
     });
     
-    socket.on('edit_message_res', async (data) => {
+    socket.on('edit_message_res_client', async (data) => {
       const { restaurantId, customerId, messageId, message } = data;
       console.log(data);
       // Clean the customerId
@@ -129,12 +145,33 @@ io.on('connection', (socket) => {
         );
     
         const room = `${restaurantId}_${cleanedCustomerId}`;
-        io.to(room).emit('receive_message_restaurant', updatedMessage);
+        io.to(room).emit('receive_message_res_client', updatedMessage);
       } catch (err) {
         console.error('Error updating message:', err);
       }
     });
-    socket.on('edit_message_driver', async (data) => {
+
+    socket.on('edit_message_res_driver', async (data) => {
+      const { restaurantId, driverId, messageId, message } = data;
+      console.log(data);
+      // Clean the customerId
+     
+      const cleanedCustomerId = driverId.replace(/"/g, '').trim();
+      try {
+        const updatedMessage = await Message.findByIdAndUpdate(
+          messageId,
+          { message },
+          { new: true }
+        );
+    
+        const room = `${restaurantId}_${cleanedCustomerId}`;
+        io.to(room).emit('receive_message_driver_res', updatedMessage);
+      } catch (err) {
+        console.error('Error updating message:', err);
+      }
+    });
+
+    socket.on('edit_message_driver_client', async (data) => {
       const { driverId, customerId, messageId, message } = data;
       console.log(data);
       // Clean the customerId
@@ -148,15 +185,15 @@ io.on('connection', (socket) => {
         );
     
         const room = `${driverId}_${cleanedCustomerId}`;
-        io.to(room).emit('receive_message_driver', updatedMessage);
+        io.to(room).emit('receive_message_driver_client', updatedMessage);
       } catch (err) {
         console.error('Error updating message:', err);
       }
     });
 
-  socket.on('delete_message_res', async (data) => {
+  socket.on('delete_message_res_client', async (data) => {
     const { restaurantId, customerId, messageId } = data;
-console.log(data);
+    console.log(data);
     // Check if messageId is provided
     if (!messageId) {
         console.error('No messageId provided for deletion.');
@@ -179,7 +216,7 @@ console.log(data);
     }
 });
 
-socket.on('delete_message_driver', async (data) => {
+socket.on('delete_message_driver_client', async (data) => {
   const { driverId, customerId, messageId } = data;
 
   // Check if messageId is provided
@@ -203,71 +240,51 @@ socket.on('delete_message_driver', async (data) => {
       console.error('Error deleting message:', err);
   }
 });
-socket.on('mark_as_read_res', async (data) => {
-  const { restaurantId, customerId, messageId, sender } = data;
-  
-  // Chỉ đánh dấu là đã đọc nếu customerId khác với sender
-  if (customerId !== sender) {
-      try {
-          // Cập nhật trạng thái tin nhắn thành 'read'
-          const updatedMessage = await Message.findByIdAndUpdate(
-              messageId,
-              { status: 'read' },
-              { new: true }
-          );
+socket.on('delete_message_res_driver', async (data) => {
+  const { driverId, restaurantId, messageId } = data;
 
-          // Kiểm tra nếu tin nhắn đã được tìm thấy và cập nhật
-          if (updatedMessage) {
-              const room = `${restaurantId}_${customerId}`;
-              io.to(room).emit('message_read', updatedMessage); // Phát sự kiện đã đọc
-          } else {
-              console.error('Message not found for ID:', messageId);
-          }
-      } catch (err) {
-          console.error('Error updating message status:', err);
+  // Check if messageId is provided
+  if (!messageId) {
+      console.error('No messageId provided for deletion.');
+      return; // Early exit if messageId is not provided
+  }
+
+  // Delete the message in the database
+  try {
+      const deletedMessage = await Message.findByIdAndDelete(messageId);
+
+      // Check if the message was found and deleted
+      if (deletedMessage) {
+        const room = `${restaurantId}_${driverId}`;
+          io.to(room).emit('message_deleted', { messageId }); // Emit an event for deleted message
+      } else {
+          console.error('Message not found for ID:', messageId);
       }
+  } catch (err) {
+      console.error('Error deleting message:', err);
   }
 });
 
-socket.on('mark_as_read_driver', async (data) => {
-  const { driverId, customerId, messageId, sender } = data;
-  
-  // Chỉ đánh dấu là đã đọc nếu customerId khác với sender
-  if (customerId !== sender) {
-      try {
-          // Cập nhật trạng thái tin nhắn thành 'read'
-          const updatedMessage = await Message.findByIdAndUpdate(
-              messageId,
-              { status: 'read' },
-              { new: true }
-          );
 
-          // Kiểm tra nếu tin nhắn đã được tìm thấy và cập nhật
-          if (updatedMessage) {
-              const room = `${driverId}_${customerId}`;
-              io.to(room).emit('message_read', updatedMessage); // Phát sự kiện đã đọc
-          } else {
-              console.error('Message not found for ID:', messageId);
-          }
-      } catch (err) {
-          console.error('Error updating message status:', err);
-      }
-  }
-});
-
-    socket.on('join_room_restaurant', (data) => {
+    socket.on('join_room_restaurant_client', (data) => {
         const { restaurantId, customerId } = data;
         const room = `${restaurantId}_${customerId}`;
         socket.join(room);
         console.log(`User joined room: ${room}`);
     });
 
-    socket.on('join_room_driver', (data) => {
+    socket.on('join_room_driver_client', (data) => {
       const { driverId, customerId } = data;
       const room = `${driverId}_${customerId}`;
       socket.join(room);
       console.log(`User joined room: ${room}`);
   });
+  socket.on('join_room_restaurant_driver', (data) => {
+    const { restaurantId, driverId } = data;
+    const room = `${restaurantId}_${driverId}`;
+    socket.join(room);
+    console.log(`User joined room: ${room}`);
+});
 
     socket.on('disconnect', () => {
         console.log('User disconnected:', socket.id);
