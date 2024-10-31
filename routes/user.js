@@ -24,5 +24,6 @@ router.put("/updateToken/:token",verifyTokenAndAuthorization, userController.upd
 // Add Skills
 router.get("/get-all-users", userController.getAllUsersMessage);
 
+router.get("/get-all-restaurants", userController.getAllRestaurants);
 
 module.exports = router
