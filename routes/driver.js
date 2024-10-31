@@ -19,5 +19,6 @@ router.get("/",verifyDriver, driverController.getDriverDetails);
 // TOGGLE DRIVER AVAILABILITY
 router.patch("/availability/:id",verifyTokenAndAuthorization, driverController.setDriverAvailability);
 
+router.get("/get-all-drivers", driverController.getAllDrivers);
 
 module.exports = router;

@@ -97,5 +97,18 @@ module.exports = {
             res.status(500).json(error);
         }
     },
+
+    getAllDrivers: async (req, res) => {
+      
+    
+        try {
+            const drivers = await User.find({userType: "Driver" })
+            .select("-fcm -otp -password -createdAt -updatedAt -__v");
+            console.log(drivers);
+            res.status(200).json(drivers);
+        } catch (error) {
+            res.status(500).json(error);
+        }
+    }
     
 }
