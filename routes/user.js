@@ -26,4 +26,8 @@ router.get("/get-all-users", userController.getAllUsersMessage);
 
 router.get("/get-all-restaurants", userController.getAllRestaurants);
 
+router.post("/update-profile-res", userController.updateProfileRestaurants);
+
+router.get("/get-profile-res/:id", userController.getProfileRestaurants);
+
 module.exports = router
