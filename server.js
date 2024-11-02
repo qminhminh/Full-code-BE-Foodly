@@ -126,6 +126,19 @@ io.on('connection', (socket) => {
         console.error('Error getting user:', err);
       }
     });
+    socket.on('send_unread_notification_res_to_driver', async (data) => {
+      const { driverId, restaurantId, message } = data;
+      try{
+        const user = await User.findById(driverId, { fcm: 1 });
+        if (user) {
+          if (user.fcm || user.fcm !== null || user.fcm !== '') {
+            sendNotification(user.fcm,`${message}`, data, `Restaurant sent you a message`);
+        }
+        }
+      }catch(err){
+        console.error('Error getting user:', err);
+      }
+    });
 
     socket.on('send_message_driver_client', async (data) => {
       const {driverId, customerId, message, sender } = data;
@@ -311,6 +324,30 @@ socket.on('mark_as_read_res_client', async (data) => {
   );
 
   const room = `${restaurantId}_${customerId}`;
+  const messageIds = updatedMessages.map((msg) => msg._id); // Danh sách các id tin nhắn đã đọc
+
+  // Emit sự kiện để client cập nhật giao diện
+  io.to(room).emit('messages_marked_as_read', { restaurantId, messageIds });
+});
+
+socket.on('mark_as_read_res_driver', async (data) => {
+  const { driverId, restaurantId } = data;
+
+  // Lấy danh sách các tin nhắn chưa đọc
+  const updatedMessages = await Message.find({
+    driverId: driverId,
+    restaurantId: restaurantId,
+    sender: { $ne: restaurantId },
+    isRead: 'unread',
+  });
+
+  // Cập nhật tất cả tin nhắn có điều kiện trên thành 'read'
+  await Message.updateMany(
+    { _id: { $in: updatedMessages.map((msg) => msg._id) } },
+    { $set: { isRead: 'read' } }
+  );
+
+  const room = `${restaurantId}_${driverId}`;
   const messageIds = updatedMessages.map((msg) => msg._id); // Danh sách các id tin nhắn đã đọc
 
   // Emit sự kiện để client cập nhật giao diện
