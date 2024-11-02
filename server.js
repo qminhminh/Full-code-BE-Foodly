@@ -23,6 +23,7 @@ const uploadRoute =require("./routes/uploads")
 const voucherRoute =require("./routes/voucher");
 const messageRoute =require("./routes/message");
 const Message = require('./models/Message'); 
+const sendNotification = require('./utils/sendNotification');
 
 
 dotenv.config()
@@ -32,6 +33,7 @@ fireBaseConnection();
 
 
 const mongoose = require('mongoose');
+const User = require('./models/User');
 mongoose.connect(process.env.MONGO_URL)
     .then(() => console.log("connected to the db")).catch((err) => { console.log(err) });
 
@@ -95,6 +97,33 @@ io.on('connection', (socket) => {
         io.to(room).emit('receive_message_res_client', newMessage);
       } catch (err) {
         console.error('Error saving message:', err);
+      }
+    });
+
+    socket.on('send_unread_notification_res_to_client', async (data) => {
+      const { customerId, restaurantId, message } = data;
+      try{
+        const user = await User.findById(customerId, { fcm: 1 });
+        if (user) {
+          if (user.fcm || user.fcm !== null || user.fcm !== '') {
+            sendNotification(user.fcm,`${message}`, data, `Restaurant sent you a message`);
+        }
+        }
+      }catch(err){
+        console.error('Error getting user:', err);
+      }
+    });
+    socket.on('send_unread_notification_client_to_res', async (data) => {
+      const { customerId, restaurantId, message } = data;
+      try{
+        const user = await User.findById(restaurantId, { fcm: 1 });
+        if (user) {
+          if (user.fcm || user.fcm !== null || user.fcm !== '') {
+            sendNotification(user.fcm,`${message}`, data, `Customer sent you a message`);
+        }
+        }
+      }catch(err){
+        console.error('Error getting user:', err);
       }
     });
 
@@ -267,28 +296,51 @@ socket.on('delete_message_res_driver', async (data) => {
 socket.on('mark_as_read_res_client', async (data) => {
   const { customerId, restaurantId } = data;
 
-  // Chỉ cập nhật trạng thái những tin nhắn có sender khác với restaurantId
+  // Lấy danh sách các tin nhắn chưa đọc
+  const updatedMessages = await Message.find({
+    customerId: customerId,
+    restaurantId: restaurantId,
+    sender: { $ne: restaurantId },
+    isRead: 'unread',
+  });
+
+  // Cập nhật tất cả tin nhắn có điều kiện trên thành 'read'
   await Message.updateMany(
-    { customerId: customerId, restaurantId: restaurantId, sender: { $ne: restaurantId }, isRead: 'unread' },
+    { _id: { $in: updatedMessages.map((msg) => msg._id) } },
     { $set: { isRead: 'read' } }
   );
+
   const room = `${restaurantId}_${customerId}`;
-  // Emit lại sự kiện để thông báo cho client cập nhật giao diện
-  io.to(restaurantId).emit('messages_marked_as_read', { restaurantId });
+  const messageIds = updatedMessages.map((msg) => msg._id); // Danh sách các id tin nhắn đã đọc
+
+  // Emit sự kiện để client cập nhật giao diện
+  io.to(room).emit('messages_marked_as_read', { restaurantId, messageIds });
 });
 
 socket.on('mark_as_read_client_res', async (data) => {
   const { customerId, restaurantId } = data;
 
-  // Chỉ cập nhật trạng thái những tin nhắn có sender khác với restaurantId
+  // Lấy danh sách các tin nhắn chưa đọc
+  const updatedMessages = await Message.find({
+    customerId: customerId,
+    restaurantId: restaurantId,
+    sender: { $ne: customerId },
+    isRead: 'unread',
+  });
+
+  // Cập nhật tất cả tin nhắn có điều kiện trên thành 'read'
   await Message.updateMany(
-    { customerId: customerId, restaurantId: restaurantId, sender: { $ne: customerId }, isRead: 'unread' },
+    { _id: { $in: updatedMessages.map((msg) => msg._id) } },
     { $set: { isRead: 'read' } }
   );
+
   const room = `${restaurantId}_${customerId}`;
-  // Emit lại sự kiện để thông báo cho client cập nhật giao diện
-  io.to(customerId).emit('messages_marked_as_read', { customerId });
+  const messageIds = updatedMessages.map((msg) => msg._id); // Danh sách các id tin nhắn đã đọc
+
+  // Emit sự kiện để client cập nhật giao diện
+  io.to(room).emit('messages_marked_as_read', { customerId, messageIds });
 });
+
 
     socket.on('join_room_restaurant_client', (data) => {
         const { restaurantId, customerId } = data;
