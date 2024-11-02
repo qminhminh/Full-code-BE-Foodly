@@ -264,7 +264,31 @@ socket.on('delete_message_res_driver', async (data) => {
       console.error('Error deleting message:', err);
   }
 });
+socket.on('mark_as_read_res_client', async (data) => {
+  const { customerId, restaurantId } = data;
 
+  // Chỉ cập nhật trạng thái những tin nhắn có sender khác với restaurantId
+  await Message.updateMany(
+    { customerId: customerId, restaurantId: restaurantId, sender: { $ne: restaurantId }, isRead: 'unread' },
+    { $set: { isRead: 'read' } }
+  );
+  const room = `${restaurantId}_${customerId}`;
+  // Emit lại sự kiện để thông báo cho client cập nhật giao diện
+  io.to(restaurantId).emit('messages_marked_as_read', { restaurantId });
+});
+
+socket.on('mark_as_read_client_res', async (data) => {
+  const { customerId, restaurantId } = data;
+
+  // Chỉ cập nhật trạng thái những tin nhắn có sender khác với restaurantId
+  await Message.updateMany(
+    { customerId: customerId, restaurantId: restaurantId, sender: { $ne: customerId }, isRead: 'unread' },
+    { $set: { isRead: 'read' } }
+  );
+  const room = `${restaurantId}_${customerId}`;
+  // Emit lại sự kiện để thông báo cho client cập nhật giao diện
+  io.to(customerId).emit('messages_marked_as_read', { customerId });
+});
 
     socket.on('join_room_restaurant_client', (data) => {
         const { restaurantId, customerId } = data;
