@@ -77,10 +77,9 @@ const ioPort = 5000;
 const ioServer = http.createServer(app); // Tạo một HTTP server riêng cho Socket.io
 const io = new Server(ioServer, {
   cors: {
-    origin: "https://full-code-be-foodly-full.onrender.com", 
+    origin: "*", 
     methods: ["GET", "POST","PUT","DELETE"],
-    allowedHeaders: ["my-custom-header"],
-    credentials: true,
+    allowedHeaders: ["Content-Type"],
 },
 });
 
