@@ -33,7 +33,7 @@ fireBaseConnection();
 
 
 const mongoose = require('mongoose');
-const User = require('./models/User');
+
 mongoose.connect(process.env.MONGO_URL)
     .then(() => console.log("connected to the db")).catch((err) => { console.log(err) });
 
@@ -76,11 +76,7 @@ app.listen(port, () => {
 const ioPort = 5000;
 const ioServer = http.createServer(app); // Tạo một HTTP server riêng cho Socket.io
 const io = new Server(ioServer, {
-  cors: {
-    origin: "*", 
-    methods: ["GET", "POST","PUT","DELETE"],
-    allowedHeaders: ["Content-Type"],
-},
+  cors: { origin: "*" },
 });
 
 // Xử lý các sự kiện `Socket.io`
