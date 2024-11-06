@@ -73,7 +73,7 @@ app.listen(port, () => {
   console.log(`Product server listening on ${port}`);
 });
 
-const ioPort = 5000;
+const ioPort = 'https://full-code-be-foodly-full.onrender.com/5000';
 const ioServer = http.createServer(app); // Tạo một HTTP server riêng cho Socket.io
 const io = new Server(ioServer, {
   cors: {
