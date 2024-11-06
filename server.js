@@ -76,7 +76,12 @@ app.listen(port, () => {
 const ioPort = 5000;
 const ioServer = http.createServer(app); // Tạo một HTTP server riêng cho Socket.io
 const io = new Server(ioServer, {
-    cors: { origin: '*' },
+  cors: {
+    origin: "https://full-code-be-foodly-full.onrender.com", 
+    methods: ["GET", "POST","PUT","DELETE"],
+    allowedHeaders: ["my-custom-header"],
+    credentials: true,
+},
 });
 
 // Xử lý các sự kiện `Socket.io`
