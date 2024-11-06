@@ -74,7 +74,7 @@ app.listen(port, () => {
 });
 
 const ioPort = 5000;
-const ioServer = http.createServer(); // Tạo một HTTP server riêng cho Socket.io
+const ioServer = http.createServer(app); // Tạo một HTTP server riêng cho Socket.io
 const io = new Server(ioServer, {
     cors: { origin: '*' },
 });
